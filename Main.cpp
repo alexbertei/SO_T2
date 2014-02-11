@@ -165,6 +165,8 @@ void calculaRegioesDaFat() {
 
 }
 
+
+
 /*
 |-------------------------------------------------------------------------------
 | [FUNÇÃO] Verifica FATs
@@ -241,7 +243,82 @@ void funcaoListaBlocosLivres() {
 }
 
 
+/*
+|-------------------------------------------------------------------------------
+| [FUNÇÃO] Lista Blocos Com Dados
+|-------------------------------------------------------------------------------
+|
+| Função que verifica se um bloco que está livre ainda contém dados.
+| 
+|
+*/
+void funcaoListaBlocosLivresComDados() {
 
+    int flag_bl; // Flag que verifica o bloco livre.
+    int flag_bd; // Flag que verifica se é um bloco livre com dado.
+    int count_bd = 0; // Conta os blocos livres com dados.
+            
+    printf("\n\n\nREMOVIDOS ");
+
+    // Percorre todos os blocos.
+    for (i = 0; i < fr.max_cluster; i++) {
+
+        // Pega o contador i para o cálculo do posicionamento do bloco no data_region.
+        fseek(in, fr.data_region_start + fr.cluster_size * i, SEEK_SET);
+
+        // Faz a leitura do bloco.
+        fread(cluster, fr.cluster_size, 1, in);
+
+        flag_bl = 0;
+        flag_bd = 0;
+
+        // Verifica se o bloco está livre.
+        if (fat1[i] == cluster[0]) {
+
+            flag_bl = 1;
+
+        }
+
+        // Se o bloco estiver livre.
+        if (flag_bl) {
+            
+            // Verifica se o mesmo contém algum dado.
+            for (j = 0; j < fr.cluster_size / 2; j++) {
+
+                if (cluster[j] != 0) {
+
+                    flag_bd = 1;
+                    count_bd++;
+                    break;
+
+                }
+            }
+
+            // Se conter algum dado imprime seu indice na tela.
+            if (flag_bd) {
+
+                printf("%d, ", i);
+
+            }
+        }
+    }
+
+    // Se não for encontrado nenhum bloco livre na tela informa ao usuário.
+    if (count_bd == 0) {
+
+        printf("{ Nehum }");
+
+    }
+}
+
+
+int copiaFat(int fatPos, int cluster_size, FILE *file, unsigned short * fatn){
+   
+    fseek(file, fatPos, SEEK_SET);
+    fwrite(fatn, 2, cluster_size, file);
+    
+    return 1;
+}
 
 /*
 |-------------------------------------------------------------------------------
@@ -335,13 +412,22 @@ int main(int argc, char *argv[]) {
         // Verifica as FATs?
         if (vf) { funcaoVerificaFats(); }
 
-		// Verifica os blocos livres da FAT?
+        // Verifica os blocos livres da FAT?
         if (bl) { funcaoListaBlocosLivres(); }
 
-		// Fecha a arquivo da FAT.
+        // Verifica os blocos livres com dados da FAT?
+        if (bd) { funcaoListaBlocosLivresComDados(); }
+        
+        // copia uma fat para outra
+        if (cf1) { copiaFat( fr.fat1_start, fr.cluster_size, in, fat2); }
+       
+        // copia uma fat para outra
+        if (cf2) { copiaFat(fr.fat2_start, fr.cluster_size, in, fat1); }
+       
+        // Fecha a arquivo da FAT.
         fclose(in);
  
-		}
+    }
 
     printf("\n\n\n---------------------- FIM DO PROGRAMA ----------------------\n\n\n");
     
@@ -349,6 +435,3 @@ int main(int argc, char *argv[]) {
     return 0;
 
 }
-
- 
-
