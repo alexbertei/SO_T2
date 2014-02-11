@@ -190,6 +190,56 @@ void funcaoVerificaFats() {
     }
 }
 
+/*
+|-------------------------------------------------------------------------------
+| [FUNÇÃO] Lista Blocos Livres
+|-------------------------------------------------------------------------------
+|
+| Função que verifica bloco a bloco quais deles encontram-se totalmente livres
+| para uso.
+|
+*/
+void funcaoListaBlocosLivres() {
+
+    int flag_bl; // Flag que verifica se o blcoo está livre.
+    int count_bl = 0; // Conta os blocos livres.
+    
+    printf("\n\n\nLIVRE ");
+
+    // Percorre todos os blocos.
+    for (i = 0; i <= fr.max_cluster; i++) {
+
+        // Pega o contador i para o cálculo do posicionamento do bloco no data_region.
+        fseek(in, fr.data_region_start + fr.cluster_size * i, SEEK_SET);
+
+        // Faz a leitura do bloco.        
+        fread(cluster, fr.cluster_size, 1, in);
+
+        flag_bl = 0;
+
+        if (fat1[i] == cluster[0]) {
+
+            flag_bl = 1;
+            count_bl++;
+
+        }
+
+        // Se o bloco estiver livre, imprime seu indice para o usuário.
+        if (flag_bl) {
+
+            printf("%d, ", i);
+
+        }
+    }
+
+    // Se não encontrar nenhum bloco livre informa ao usuário.
+    if (count_bl == 0) {
+
+        printf("{ Nehum }");
+
+    }
+}
+
 
 
 
@@ -285,7 +335,20 @@ int main(int argc, char *argv[]) {
         // Verifica as FATs?
         if (vf) { funcaoVerificaFats(); }
 
-        
- }
+		// Verifica os blocos livres da FAT?
+        if (bl) { funcaoListaBlocosLivres(); }
+
+		// Fecha a arquivo da FAT.
+        fclose(in);
  
+		}
+
+    printf("\n\n\n---------------------- FIM DO PROGRAMA ----------------------\n\n\n");
+    
+    // Finaliza a execução do programa.
+    return 0;
+
 }
+
+ 
+
